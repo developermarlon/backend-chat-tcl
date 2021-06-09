@@ -10,7 +10,7 @@ const app = express()
 dotenv.config({
     path: `.env.${process.env.NODE_ENV}`
 })
-moment().tz("America/Bogota").format()
+moment().locale('es').tz("America/Bogota").format()
 
 //middlewares
 app.use(morgan('dev'))
