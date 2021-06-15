@@ -2,6 +2,9 @@ import app from './app'
 import SocketServer from "socket.io";
 import moment from 'moment-timezone'
 
+//import db
+import connect from './database/db'
+
 //config app
 export const server = app.listen(process.env.PORT)
 
@@ -14,7 +17,7 @@ io.on('connection', (socket) => {
   socket.join(socket.room)
 
   socket.on('disconnect', async () => {
-    await socket.disconnect()
+    await socket.disconnect() 
     socket.broadcast.to(socket.room).emit('user disconnected', {name: socket.name, type_user: socket.type_user, date: moment().locale('es').format('LLL'), id: socket.id})
     socket.broadcast.to(socket.room).emit('get clients', await getSockets(socket.room))
   })
@@ -44,7 +47,10 @@ io.on('connection', (socket) => {
   })
 
   socket.on('send message', async (message) => {
-    socket.broadcast.to(socket.room).emit('get message', {id: socket.id, message, date: moment().locale('es').format('LLL'), type_user: socket.type_user, name: socket.name })
+    const messageComplete = {id: socket.id, message, date: moment().locale('es').format('LLL'), type_user: socket.type_user, name: socket.name, room: socket.room }
+    socket.broadcast.to(socket.room).emit('get message', messageComplete)
+    const db = await connect()
+    await db.collection('messages').insertOne(messageComplete)
   })
 
 })
